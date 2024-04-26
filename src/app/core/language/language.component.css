@@ -1,0 +1,51 @@
+/* 
+
+:host ::ng-deep .p-dropdown
+{
+    width: 50px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0);
+    border-color: white;
+    transition: background-color 1s ease ;
+}
+:host ::ng-deep .p-dropdown:hover
+{
+    background-color: red;
+}
+
+:host ::ng-deep .p-dropdown-label
+{
+    width: 100%;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .p-dropdown-trigger
+{
+    color:  white;
+}
+
+:host ::ng-deep .p-dropdown-items
+{
+
+    margin: 0px;
+    padding: 0px;
+}
+:host .p-dropdown-item, 
+:host  .p-highlight ,
+:host  .p-focus
+{
+
+background-color: red;
+}
+ */
+
+ .custom:hover
+ {
+    cursor: pointer;
+ }

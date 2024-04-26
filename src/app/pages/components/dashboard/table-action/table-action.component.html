@@ -1,0 +1,31 @@
+<div  appTableAction [fontSize]="fontSize" >
+    <p-button [outlined]="true" icon="pi pi-fw pi-cog" (click)="op1.toggle($event)" pTooltip="Settings" [outlined]="true"   ></p-button>
+    <p-overlayPanel #op1 [showCloseIcon]="true">
+        <div class="flex flex-column">
+           
+            <div class="col-3 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-window-maximize"    pTooltip="Maximize"    (onClick)="itemClick($event,'Maximize')"></p-button>
+            </div>
+            <div class="col-3 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-file"   pTooltip="CSV" [outlined]="true"    (onClick)="itemClick($event,'CSV')"></p-button>
+            </div>
+            <div class="col-3 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-file-excel"   pTooltip="XLS" [outlined]="true"    (onClick)="itemClick($event,'XLS')"></p-button>
+            </div>
+            <div class="col-3 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-search-plus" (click)="incremetTableFontSize()"  pTooltip="Zoom In" [outlined]="true"  ></p-button>
+            </div>
+            <div class="col-3 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-search-minus" (click)="decrementTableFontSize()"  pTooltip="Zoom Out" [outlined]="true"  ></p-button>
+            </div>
+            <!-- <div class="col-12 " style="padding: 5px !important;">
+                <p-button [outlined]="true" icon="pi pi-file-pdf"   pTooltip="PDF" [outlined]="true"  ></p-button>
+            </div> -->
+        </div>
+    </p-overlayPanel>
+
+</div>
+
+
+
+

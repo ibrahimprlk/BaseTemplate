@@ -1,0 +1,183 @@
+<div class="grid">
+
+
+  <ng-template #childActulaChartTempalte>
+    <mecha-apex-chart #childRef [chartId]=1 [series]="selectedActualChartSeries">
+    </mecha-apex-chart>
+  </ng-template>
+  <ng-template #childActulaForecastTempalte>
+    <mecha-apex-chart #childRef [chartId]=2 [series]="selectedForecastChartSeries">
+    </mecha-apex-chart>
+  </ng-template>
+  <ng-template #childActulaMixChartTempalte>
+    <mecha-apex-chart  #childRef [chartId]=3 [series]="selectedMixedChartSeries">
+    </mecha-apex-chart>
+  </ng-template>
+  <ng-template #childActualGridTempalte>
+    <mecha-child-grid>
+    </mecha-child-grid>
+  </ng-template>
+
+  <ng-template #childForecastGridTempalte>
+    <mecha-child-grid>
+    </mecha-child-grid>
+  </ng-template>
+  <div [hidden]="isMaximized" class="col-12 xl:col-6">
+
+
+    <div class="card">
+      <h5>Actual</h5>
+      <div style="text-align: right;">
+        <button pButton pRipple label="Show Dialog" (click)="showDialog('Actual')"></button>
+        <p-dropdown [options]="types" [(ngModel)]="controlchartActual" (onChange)="changeType($event,'Actual','chart1')"
+          [showClear]="false"></p-dropdown>
+
+        <button pButton pRipple label="Mixed" icon="pi pi-angle-double-right" (click)="toggleMaximize()"></button>
+      </div>
+      <br>
+      <ng-container *ngTemplateOutlet="childActulaChartTempalte"></ng-container>
+
+    </div>
+  </div>
+
+  <div [hidden]="isMaximized" class="col-12 xl:col-6">
+    <div class="card">
+
+      <h5>Forecast</h5>
+      <div style="text-align: left;">
+
+        <button pButton pRipple label="Mixed" icon="pi pi-angle-double-left" (click)="toggleMaximize()"></button>
+        <p-dropdown [options]="types" [(ngModel)]="controlchartForecast"
+          (onChange)="changeType($event,'Forecast','chart2')" [showClear]="false"></p-dropdown>
+        <button pButton pRipple label="Show Dialog" (click)="showDialog('Forecast')"></button>
+      </div>
+      <br>
+      <ng-container *ngTemplateOutlet="childActulaForecastTempalte">
+
+      </ng-container>
+
+    </div>
+
+  </div>
+  <div [hidden]="!isMaximized" class="col-12 xl:col-12">
+    <h5>Mixed Chart</h5>
+    <div style="text-align: right;">
+      <button pButton pRipple label="Single" icon="pi pi-arrow-right-arrow-left" (click)="toggleMaximize()"></button>
+    </div>
+    <br>
+    <ng-container *ngTemplateOutlet="childActulaMixChartTempalte"></ng-container>
+
+  </div>
+  <div class="col-12 xl:col-6">
+    <div class="card">
+
+      <h5>Actual</h5>
+      <div style="text-align: left;">
+
+        <!-- <button pButton pRipple label="Mixed" icon="pi pi-angle-double-left" (click)="toggleMaximize()"></button>
+          <p-dropdown [options]="types"  [(ngModel)]="controlchartForecast"   (onChange)="changeType($event,'Forecast','chart2')" [showClear]="false"></p-dropdown> -->
+        <button pButton pRipple label="Show Dialog" (click)="showDialog('ActualGrid')"></button>
+      </div>
+      <ng-container *ngTemplateOutlet="childActualGridTempalte"></ng-container>
+    </div>
+  </div>
+  <div class="col-12 xl:col-6">
+    <div class="card">
+      <h5>Forecast</h5>
+      <div style="text-align: left;">
+
+        <!-- <button pButton pRipple label="Mixed" icon="pi pi-angle-double-left" (click)="toggleMaximize()"></button>
+          <p-dropdown [options]="types"  [(ngModel)]="controlchartForecast"   (onChange)="changeType($event,'Forecast','chart2')" [showClear]="false"></p-dropdown> -->
+        
+          <!-- <button pButton pRipple label="Show Dialog" (click)="showDialog('ForecastGrid')" ></button> -->
+        <p-button label="Show Dialog" [outlined]="true" (click)="showDialog('ForecastGrid')" ></p-button>
+      </div>
+      <ng-container *ngTemplateOutlet="childForecastGridTempalte"></ng-container>
+    </div>
+  </div>
+
+
+
+</div>
+
+
+<p-dialog [(visible)]="displayForActual" [style]="{width: isFullScreen ? '100vw' : '50vw'}">
+  <ng-template pTemplate="header">
+    <div class="ui-dialog-titlebar">
+      <span class="ui-dialog-title">Actual</span>
+      <div class="ui-dialog-titlebar-icons">
+        @if(isFullScreen)
+        {
+          <!-- <button type="button" pButton icon="pi pi-window-minimize" (click)="toggleFullScreen(false)"></button> -->
+          <p-button icon="pi pi-window-minimize"  [outlined]="true" (click)="toggleFullScreen(false)" ></p-button>
+        }
+        @else
+        {
+          <!-- <button type="button" pButton icon="pi pi-window-maximize" (click)="toggleFullScreen(true)"></button> -->
+          <p-button icon="pi pi-window-maximize"  [outlined]="true" (click)="toggleFullScreen(true)" ></p-button>
+        }
+        
+
+      </div>
+    </div>
+  </ng-template>
+  <ng-container *ngTemplateOutlet="childActulaChartTempalte"></ng-container>
+
+</p-dialog>
+
+<p-dialog [(visible)]="displayForForecast" [style]="{width: isFullScreen ? '100vw' : '50vw'}">
+  <ng-template pTemplate="header">
+    <div class="ui-dialog-titlebar">
+      <span class="ui-dialog-title">Forecast</span>
+      <div class="ui-dialog-titlebar-icons">
+        <button type="button" pButton icon="pi pi-window-minimize" (click)="toggleFullScreen(false)"></button>
+        <button type="button" pButton icon="pi pi-window-maximize" (click)="toggleFullScreen(true)"></button>
+      </div>
+    </div>
+  </ng-template>
+  <ng-container *ngTemplateOutlet="childActulaForecastTempalte"></ng-container>
+
+</p-dialog>
+
+<p-dialog [(visible)]="displayForMixed" [style]="{width: isFullScreen ? '100vw' : '50vw'}">
+  <ng-template pTemplate="header">
+    <div class="ui-dialog-titlebar">
+      <span class="ui-dialog-title">Mix Chart</span>
+      <div class="ui-dialog-titlebar-icons">
+        <button type="button" pButton icon="pi pi-window-minimize" (click)="toggleFullScreen(false)"></button>
+        <button type="button" pButton icon="pi pi-window-maximize" (click)="toggleFullScreen(true)"></button>
+      </div>
+    </div>
+  </ng-template>
+  <ng-container *ngTemplateOutlet="childForecastGridTempalte"></ng-container>
+
+</p-dialog>
+
+<p-dialog [(visible)]="displayActualGrid" [style]="{width: isFullScreen ? '100vw' : '50vw'}">
+  <ng-template pTemplate="header">
+    <div class="ui-dialog-titlebar">
+      <span class="ui-dialog-title">Actual</span>
+      <div class="ui-dialog-titlebar-icons">
+        <button type="button" pButton icon="pi pi-window-minimize" (click)="toggleFullScreen(false)"></button>
+        <button type="button" pButton icon="pi pi-window-maximize" (click)="toggleFullScreen(true)"></button>
+      </div>
+    </div>
+  </ng-template>
+  <ng-container *ngTemplateOutlet="childActualGridTempalte"></ng-container>
+
+</p-dialog>
+
+<p-dialog [(visible)]="displayForecastGrid" [style]="{width: isFullScreen ? '100%' : '50vw'}">
+  <ng-template pTemplate="header">
+    <div class="ui-dialog-titlebar">
+      <span class="ui-dialog-title">Forecast</span>
+      <div class="ui-dialog-titlebar-icons">
+        <button type="button" pButton icon="pi pi-window-minimize" (click)="toggleFullScreen(false)"></button>
+        <button type="button" pButton icon="pi pi-window-maximize" (click)="toggleFullScreen(true)"></button>
+      </div>
+    </div>
+  </ng-template>
+  <ng-container *ngTemplateOutlet="childForecastGridTempalte"></ng-container>
+
+</p-dialog>
+

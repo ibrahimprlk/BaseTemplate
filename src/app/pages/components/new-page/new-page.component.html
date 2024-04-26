@@ -1,0 +1,589 @@
+<p-confirmDialog #cd>
+    <ng-template pTemplate="headless" let-message>
+        <div class="flex flex-column align-items-center p-5 surface-overlay border-round">
+            <div class="border-circle bg-primary inline-flex justify-content-center align-items-center h-6rem w-6rem -mt-8">
+                <i class="pi pi-question text-5xl"></i>
+            </div>
+            <span class="font-bold text-2xl block mb-2 mt-4">{{ message.header }}</span>
+            <p class="mb-0">{{ message.message }}</p>
+            <div class="flex align-items-center gap-2 mt-4">
+                <button pButton label="Hayır" (click)="cd.reject()" class="p-button-outlined w-8rem "></button>
+                <button pButton label="Evet" (click)="cd.accept()" class="w-8rem"></button>
+            </div>
+        </div>
+    </ng-template>
+</p-confirmDialog>
+
+<p-toast></p-toast>
+
+<div class="grid" #TableArea>
+	<div class="col-12">
+		<div class="card">
+             <ng-container *ngTemplateOutlet="table"></ng-container> 
+		</div>
+	</div>
+</div>
+
+
+<p-dialog #tableDialog (onHide)="DialogClose()"  [(visible)]="dataModel" [maximizable]="false" [draggable]="false"  [modal]="true"[style]="{width: '1550px' , height:'1200px'}" [position]="position">
+    <ng-container *ngTemplateOutlet="dialogv3"></ng-container> 
+    <ng-template pTemplate="footer">
+        <div class="col-12">
+            <div class="flex align-items-center gap-2">
+                <button *ngIf="activeIndex!=0" (click)="Prev()" pButton pRipple label="Geri" class="w-full p-button-outlined"></button>
+                <button *ngIf="activeIndex==0" (click)="DialogResult('Cancel')" pButton pRipple label="İptal" class="w-full p-button-outlined"></button>
+                <button *ngIf="activeIndex!=2" (click)="Next()" pButton pRipple label="İleri" class="w-full p-button-outlined"></button>
+                <button *ngIf="activeIndex==2" (click)="DialogResult('Save')" pButton pRipple label="Kaydet" class="w-full p-button-outlined"></button>
+                
+                <!-- <p-button *ngIf="activeIndex!=0" (onClick)="Prev()" label="Geri" [text]="true"  styleClass="w-full " class="w-full"></p-button>                    
+                <p-button *ngIf="activeIndex==0"(onClick)="DialogResult('Cancel')" label="İptal" [text]="true"  styleClass="w-full " class="w-full"></p-button>
+                <p-button *ngIf="activeIndex!=2"(onClick)="Next()"  label="İleri"  [text]="true" styleClass="w-full " class="w-full" ></p-button>
+                <p-button *ngIf="activeIndex==2"(onClick)="DialogResult('Save')"  label="Kaydet"  [text]="true" styleClass="w-full " class="w-full" ></p-button> -->
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- <p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog> -->
+<ng-template  #table>
+    <p-table 
+        styleClass="p-datatable-gridlines p-datatable-striped"
+        [columns]="cols" 
+        [value]="values" 
+        [(selection)]="selectedRows" 
+        [paginator]="true" 
+        [rows]="10" 
+        [rowsPerPageOptions]="[5,10,20]"
+        [scrollable]="true" 
+        >
+		<ng-template pTemplate="caption">
+			<div class="flex justify-content-between flex-column sm:flex-row">
+				<div class="flex justify-content-start  flex-column sm:flex-row gap-2">
+                    <button pButton  class="p-button-outlined mb-2" icon="pi pi-plus" (click)="AddItem()"></button>
+                    <button [disabled]="!selectedRows.length" pButton  class="p-button-outlined mb-2" icon="pi pi-trash" (click)="MultipleDelete()"></button>
+                </div>
+				<div class="flex justify-content-end  flex-column sm:flex-row gap-2">
+					<span class="p-input-icon-left mb-2">
+						<i class="pi pi-search"></i>
+						<input style="height: 40px; padding-left: 30px;" pInputText type="text" #filter (input)="onGlobalFilter(dt1, $event)" placeholder="Search Keyword" />
+					</span>					
+				</div>
+			</div>
+		</ng-template>
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+                <th style="width:200px" pFrozenColumn>
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+                <th style="min-width:150px" pFrozenColumn></th>
+                <th *ngFor="let col of columns" [pSortableColumn]="col.field"  style="min-width:250px">
+                    <div class="flex justify-content-between align-items-center">
+                        {{col.header}}                 
+                        <p-columnFilter [type]="col.filterType"  [field]="col.field" display="menu"></p-columnFilter>
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-dataItem>
+            <tr class="p-selectable-row">
+                <td style="width:200px" pFrozenColumn>
+                    <p-tableCheckbox [value]="dataItem"></p-tableCheckbox>
+                </td>
+                <td style="min-width:150px" pFrozenColumn>
+                    <button pButton  class="p-button-outlined  mr-1" icon="pi pi-pencil" (click)="UpdateItem(dataItem)"></button>
+                    <button pButton  class="p-button-outlined " icon="pi pi-trash" (click)="DeleteItem(dataItem)"></button>
+                    <!-- <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-1" (click)="UpdateItem(dataItem)"></button>
+                    <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="DeleteItem(dataItem)"></button> -->
+                </td>
+                <td *ngFor="let col of cols" style="min-width:250px">
+                   
+                    @if(col.type && col.type=="date")
+                    {
+                        {{dataItem[col.field] | date: 'dd/MM/yyyy'}}
+                    }
+                    @else if(col.type && col.type=="boolean")
+                    {
+                        <i class="pi" [ngClass]="{'true-icon pi-check-circle text-green-500': dataItem.ISACTIVE, 'false-icon pi-times-circle text-pink-500': !dataItem.ISACTIVE}"></i>
+                    }
+                    @else {
+                        {{dataItem[col.field]}}
+                    }
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</ng-template>
+
+<ng-template #dialogv1>
+    <form [formGroup]="editForm" style="margin-top: 50px;">
+        <div class="grid">
+            <div class="col-12">            
+                <div class="card">
+
+                    <div class="field grid">
+                        <label htmlFor="name3" class="col-12 mb-2">Stok Kodu</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text" style="width: 100%; height: 30px;" formControlName="STOKKODU" />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Stok Adı</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="STOKADI"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Grup Kodu</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="GRUPKODU"  />
+                        </div>
+                    </div>
+                    
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Rapor Kodu</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RAPORKODU"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Birim</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="BIRIM"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Döviz Tipi Alış</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPIALIS"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Alış Fiyat</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZALISFIYAT"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Satış</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPISATIS"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Satış Fiyat</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZSATISFIYAT"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Ürün Türü</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="URUNTURU"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Reçete No</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RECETE_NO"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Rota No</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="ROTA_NO"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Uretim Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="URETIMSURESI"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Asgari Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="ASGARI_STOK"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Azami Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="AZAMI_STOK"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Tedarik Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="TEDARIK_SURESI"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Not</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="NOZEL1"  />
+                        </div>
+                    </div>
+
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Not2</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="SOZEL1"  />
+                        </div>
+                    </div>
+                    
+                    <div class="flex align-items-center gap-2">
+                        <p-button (onClick)="DialogResult('Cancel')" label="İptal" [text]="true"  styleClass="w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full"></p-button>
+                        <p-button (onClick)="DialogResult('Save')"  label="Kaydet"  [text]="true" styleClass="w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full" ></p-button>
+
+                    </div>
+                </div>    
+            </div>
+        </div>
+    </form>
+</ng-template>
+
+<ng-template #dialogv2>
+    <form [formGroup]="editForm" style="margin-top: 50px;">
+        <div class="grid">
+            
+            <div class="col-12 ">
+                <div class="card p-fluid">
+                    <h5>Genel Bilgiler</h5>
+                    <hr>
+                    <div #container class="flex flex-row flex-wrap">
+                        <div class="col-6 md:col-6">
+                            <div class="field grid">
+                                <label htmlFor="name3" class="col-12 mb-2">Stok Kodu</label>
+                                <div class="col-12 ">
+                                    <input pInputText  type="text" style="width: 100%; height: 30px;" formControlName="STOKKODU" />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Stok Adı</label>
+                                <div class="col-12 ">
+                                    <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="STOKADI"  />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Grup Kodu</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="GRUPKODU"  /> -->
+                                    <p-dropdown formControlName="GRUPKODU" [options]="_service.gurupKodlari" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Rapor Kodu</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RAPORKODU"  /> -->
+                                    <p-dropdown formControlName="RAPORKODU" [options]="_service.raporKodlari" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Aktif/Pasif</label>
+                                <div class="col-12 ">
+                                    <p-selectButton [options]="_service.stateOptions" formControlName="ISACTIVE" optionLabel="label" optionValue="value"></p-selectButton>
+                                    <!-- <p-checkbox name="group1" value="New York" formControlName="ISACTIVE"  id="ny"></p-checkbox> -->
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RAPORKODU"  /> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Birim</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="BIRIM"  /> -->
+                                    <p-dropdown formControlName="BIRIM" [options]="_service.birimler" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Not</label>
+                                <div class="col-12 ">
+                                    <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="NOZEL1"  />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Not2</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="SOZEL1"  /> -->
+                                    <textarea rows="12" cols="30" style="width: 100%" formControlName="SOZEL1"  pInputTextarea></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="col-12 md:col-6">
+                <div class="card p-fluid">
+                    <h5>Fiyatlandırma</h5>
+                    <hr>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Ürün Türü</label>
+                        <div class="col-12 ">
+                            <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="URUNTURU"  /> -->
+                            <p-dropdown formControlName="URUNTURU" [options]="_service.urunTurler" optionLabel="name" optionValue="code"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Döviz Tipi Alış</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPIALIS"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Alış Fiyat</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZALISFIYAT"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Satış</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPISATIS"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Doviz Tipi Satış Fiyat</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZSATISFIYAT"  />
+                        </div>
+                    </div>
+
+                </div>
+                
+            </div>
+
+            <div class="col-12 md:col-6">
+                <div class="card p-fluid">
+                    <h5>Stock / Uretim Detayları</h5>
+                    <hr>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Asgari Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="ASGARI_STOK"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Azami Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="AZAMI_STOK"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Tedarik Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="TEDARIK_SURESI"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Reçete No</label>
+                        <div class="col-12 ">
+                            <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RECETE_NO"  /> -->
+                            <p-dropdown formControlName="RECETE_NO" [options]="_service.receteler" optionLabel="name" optionValue="code"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Rota No</label>
+                        <div class="col-12 ">
+                            <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="ROTA_NO"  /> -->
+                            <p-dropdown formControlName="ROTA_NO" [options]="_service.rotalar" optionLabel="name" optionValue="code"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Uretim Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="URETIMSURESI"  />
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="col-12">
+                <div class="flex align-items-center gap-2">
+                    <p-button (onClick)="DialogResult('Cancel')" label="İptal" [text]="true"  styleClass="w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full"></p-button>
+                    <p-button (onClick)="DialogResult('Save')"  label="Kaydet"  [text]="true" styleClass="w-full text-primary-50 border-1 border-white-alpha-30 hover:bg-white-alpha-10" class="w-full" ></p-button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</ng-template>
+
+<ng-template #dialogv3>
+    <p-steps [model]="items" [readonly]="false" [activeIndex]="activeIndex" (activeIndexChange)="onActiveIndexChange($event)"></p-steps>
+    <form [formGroup]="editForm" style="margin-top: 50px;">
+        <div class="grid">
+            
+            <div class="col-12 " *ngIf="activeIndex==0">
+                <div class="card p-fluid">
+                    <h5>Genel Bilgiler</h5>
+                    <hr>
+                    <div #container class="flex flex-row flex-wrap">
+                        <div class="col-6 md:col-6">
+                            <div class="field grid">
+                                <label class="col-12 mb-2">Stok Kodu</label>
+                                <div class="col-12 ">
+                                    <input  pInputText  type="text" style="width: 100%; height: 30px;" formControlName="STOKKODU" />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Stok Adı</label>
+                                <div class="col-12 ">
+                                    <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="STOKADI"  />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Grup Kodu</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="GRUPKODU"  /> -->
+                                    <p-dropdown formControlName="GRUPKODU" [options]="_service.gurupKodlari" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Rapor Kodu</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RAPORKODU"  /> -->
+                                    <p-dropdown formControlName="RAPORKODU" [options]="_service.raporKodlari" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Aktif/Pasif</label>
+                                <div class="col-12 ">
+                                    <p-selectButton [options]="_service.stateOptions" formControlName="ISACTIVE" optionLabel="label" optionValue="value"></p-selectButton>
+                                    <!-- <p-checkbox name="group1" value="New York" formControlName="ISACTIVE"  id="ny"></p-checkbox> -->
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RAPORKODU"  /> -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 md:col-6">
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Birim</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="BIRIM"  /> -->
+                                    <p-dropdown formControlName="BIRIM" [options]="_service.birimler" optionLabel="name" optionValue="code"></p-dropdown>
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Not</label>
+                                <div class="col-12 ">
+                                    <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="NOZEL1"  />
+                                </div>
+                            </div>
+                            <div class="field grid">
+                                <label  class="col-12 mb-2 ">Not2</label>
+                                <div class="col-12 ">
+                                    <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="SOZEL1"  /> -->
+                                    <textarea rows="12" cols="30" style="width: 100%" formControlName="SOZEL1"  pInputTextarea></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="col-12" *ngIf="activeIndex==1">
+                    <div class="card p-fluid">
+                        <h5>Fiyatlandırma</h5>
+                        <hr>
+                        <div class="field grid">
+                            <label  class="col-12 mb-2 ">Ürün Türü</label>
+                            <div class="col-12 ">
+                                <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="URUNTURU"  /> -->
+                                <p-dropdown formControlName="URUNTURU" [options]="_service.urunTurler" optionLabel="name" optionValue="code"></p-dropdown>
+                            </div>
+                        </div>
+                        <div class="field grid">
+                            <label  class="col-12 mb-2 ">Döviz Tipi Alış</label>
+                            <div class="col-12 ">
+                                <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPIALIS"  />
+                            </div>
+                        </div>
+                        <div class="field grid">
+                            <label  class="col-12 mb-2 ">Doviz Tipi Alış Fiyat</label>
+                            <div class="col-12 ">
+                                <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZALISFIYAT"  />
+                            </div>
+                        </div>
+                        <div class="field grid">
+                            <label  class="col-12 mb-2 ">Doviz Tipi Satış</label>
+                            <div class="col-12 ">
+                                <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZTIPISATIS"  />
+                            </div>
+                        </div>
+                        <div class="field grid">
+                            <label  class="col-12 mb-2 ">Doviz Tipi Satış Fiyat</label>
+                            <div class="col-12 ">
+                                <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="DOVIZSATISFIYAT"  />
+                            </div>
+                        </div>
+    
+                    </div>
+            </div>
+
+            <div class="col-12 " *ngIf="activeIndex==2">
+                <div class="card p-fluid">
+                    <h5>Stock / Uretim Detayları</h5>
+                    <hr>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Asgari Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="ASGARI_STOK"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Azami Stok</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="AZAMI_STOK"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Tedarik Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="TEDARIK_SURESI"  />
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Reçete No</label>
+                        <div class="col-12 ">
+                            <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="RECETE_NO"  /> -->
+                            <p-dropdown formControlName="RECETE_NO" [options]="_service.receteler" optionLabel="name" optionValue="code"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Rota No</label>
+                        <div class="col-12 ">
+                            <!-- <input pInputText  type="text"   style="width: 100%; height: 30px;" formControlName="ROTA_NO"  /> -->
+                            <p-dropdown formControlName="ROTA_NO" [options]="_service.rotalar" optionLabel="name" optionValue="code"></p-dropdown>
+                        </div>
+                    </div>
+                    <div class="field grid">
+                        <label  class="col-12 mb-2 ">Uretim Süresi</label>
+                        <div class="col-12 ">
+                            <input pInputText  type="number"   style="width: 100%; height: 30px;" formControlName="URETIMSURESI"  />
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+    </form>
+</ng-template>

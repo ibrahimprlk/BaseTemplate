@@ -1,0 +1,22 @@
+<div class="chart">
+    <apx-chart #chart [id]="chartId" [series]="chartOptions.series" [chart]="chartOptions.chart"
+        [xaxis]="chartOptions.xaxis" [theme]="chartOptions.theme" [dataLabels]="chartOptions.dataLabels"
+        [tooltip]="chartOptions.tooltip">
+    </apx-chart>
+</div>
+
+<!-- app.component.html -->
+<div id="pdfLoader" *ngIf="isShow" style="
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(32, 202, 40, 0.7);
+    color: #571010;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 50px;
+    z-index: 9999;
+">
+    PDF oluşturuluyor...
+</div>

@@ -1,0 +1,11 @@
+svg
+{
+    fill: red;
+    transition: all 0.5s linear;
+}
+
+svg:hover
+{
+    fill: green;
+    scale: 1.1;
+}
