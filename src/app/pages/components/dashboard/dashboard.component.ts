@@ -17,6 +17,7 @@ import {
 
 import { ApexChartComponent } from './chart/apex-chart.component';
 import { NoopAnimationDriver } from '@angular/animations/browser';
+import { DashboardService } from './dashboard.service';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -86,7 +87,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // @ViewChild('childActulaChart') childActulaChart: TemplateRef<ApexChartComponent>;
   //  @ViewChild('childActulaChart') childActulaChart: TemplateRef<ApexChartComponent>;
   @ViewChild('childRef') child: ApexChartComponent;
-  constructor(private productService: ProductService, public layoutService: LayoutService) {
+  constructor(private productService: ProductService, public layoutService: LayoutService,public dashboardService:DashboardService) {
 
     this.types = [{ label: 'Line', value: 'line' }, { label: 'Area', value: 'area' }, { label: 'Bar', value: 'bar' }];
 
@@ -94,14 +95,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       series: [{
         name: 'Actual',
         type: 'line',
-        data: [
-          [new Date('2023-01-01').getTime(), 34],
-          [new Date('2023-02-01').getTime(), 43],
-          [new Date('2023-03-01').getTime(), 31],
-          [new Date('2023-04-01').getTime(), 43],
-          [new Date('2023-05-01').getTime(), 33],
-          [new Date('2023-06-01').getTime(), 52]
-        ]
+        data:dashboardService.getChartActualData()
       }],
       responsive: [{
         breakpoint: 480,
@@ -153,14 +147,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         {
           name: 'Forecast',
           type: 'line',
-          data: [
-            [new Date('2023-01-01').getTime(), 53],
-            [new Date('2023-02-01').getTime(), 26],
-            [new Date('2023-03-01').getTime(), 43],
-            [new Date('2023-04-01').getTime(), 35],
-            [new Date('2023-05-01').getTime(), 31],
-            [new Date('2023-06-01').getTime(), 47]
-          ]
+          data: dashboardService.getChartForecastData()
         }],
 
       chart: {

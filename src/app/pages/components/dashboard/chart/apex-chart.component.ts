@@ -14,6 +14,7 @@ import {
 
 import * as html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
+import { DashboardService } from '../dashboard.service';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -40,35 +41,33 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
   isresizecontrol: boolean = true;
 
 
-  // public dataActual;
-  // public dataForecast;
-  // public getDataSeries:any[]=[];
-
   chart1:any[]=[]
   chart2:any[]=[]
   chart3:any[]=[]
   public control: boolean;
   @Input() public set series(seriesData:any) {
     if (seriesData) {
-      debugger
       this.chartOptions = Object.assign(this.baseChartOptions);
       this.chartOptions.series = seriesData
 
       if(seriesData?.length ==1 && seriesData[0].name =="Actual")
         {
-          this.chart1 =seriesData[0].data
+         // this.chart1 =seriesData[0].data
+         this.chart1=this.dashboardService.getChartActualData()
         }
 
         if(seriesData?.length ==1 && seriesData[0].name =="Forecast")
           {
-            this.chart2 =seriesData[0].data
+           // this.chart2 =seriesData[0].data
+           this.chart2=this.dashboardService.getChartForecastData()
           }
 
 
           if(seriesData?.length ==2)
             {
               
-              this.chart3 = this.mergeDataSets(seriesData[0].data,seriesData[1].data)
+             // this.chart3 = this.mergeDataSets(seriesData[0].data,seriesData[1].data)
+             this.chart3 = this.mergeDataSets(this.dashboardService.getChartActualData(),this.dashboardService.getChartForecastData())
             }
     }
   }
@@ -107,7 +106,6 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
       this.chartOptions.chart.background = res.apexChartBackgroundColor;
       this.chartOptions.chart.foreColor = res.apexChartForeColor;
       this.chartOptions.theme.mode = res.colorScheme;
-      // this.charts.forEach((chartComponent) => {
       
       this.chart.updateOptions({
         chart: {
@@ -119,13 +117,18 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
           mode: res.colorScheme
         }
       });
-      // });
-
-
     })
   }
 
-  constructor(public layoutService: LayoutService) {
+  constructor(public layoutService: LayoutService,public dashboardService:DashboardService) {
+
+     this.chart1=this.dashboardService.getChartActualData()
+     this.chart1=this.formatTimestamps(this.chart1)
+     this.chart2=this.dashboardService.getChartForecastData()
+     this.chart2=this.formatTimestamps(this.chart2)
+     this.chart3 = this.mergeDataSets(this.chart1,this.chart2)
+
+
     this.types = [{ label: 'Line', value: 'line' }, { label: 'Area', value: 'area' }, { label: 'Bar', value: 'bar' }];
 
     this.baseChartOptions = {
@@ -161,7 +164,6 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
           },
         },
         toolbar: {
-
           show: true,
           tools: {
             download: true,
@@ -169,8 +171,6 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
         },
 
         height: window.innerHeight * 0.5,
-
-
         background: layoutService._config.apexChartBackgroundColor,
         foreColor: layoutService._config.apexChartForeColor
 
@@ -211,42 +211,26 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
     if (this.isViewInit) {
       this.AddChartCustomExportItem()
       this.chart.updateSeries(this.chartOptions.series, true)
-      // this.chart.updateOptions({
-      //   series: this.chartOptions.series
-      // });
     }
   }
   ngAfterViewInit(): void {
     this.isViewInit = true;
   }
 
-
-
   ngOnChanges(changes: SimpleChanges): void {
    
     if (this.isViewInit) {
-       
       this.chartOptions = Object.assign(this.baseChartOptions);
       
       let series: any[] = [];
       changes['series'].currentValue.forEach(element => {
         series.push(element)
       });
-      // this.chartOptions.series =   [changes['series'].currentValue];
       this.chartOptions.series = series;
       this.chart.updateSeries(this.chartOptions.series, true)
-      // this.chart.updateOptions({
-      //   series: this.chartOptions.series
-      // });
-
-
-
     }
-
-     ;
   }
   changeType(event, seriesName, chart) {
-     ;
     if (chart === 'chart') {
       let series = this.chartOptions.series.map(s => {
         if (s.name === seriesName) {
@@ -255,12 +239,9 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
           return s;
         }
       });
-       ;
+      
       this.chartOptions.series = series;
       this.chart.updateSeries(this.chartOptions.series, true)
-      // this.chart.updateOptions({
-      //   series: this.chartOptions.series
-      // });
     }
   }
 
@@ -334,13 +315,14 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
   private ExportPDF(data: { id: number; selectedItemName: string }) {
      this.isShow = true
      const itemId = data.id;
+     
     const element = document.getElementById(itemId.toString());
     const options = {
       margin: 10, // Kenar boşlukları
       filename: 'pdfDosyasi.pdf',
       image: { type: 'jpeg', quality: 0.98 }, // Görüntü kalitesi
       html2canvas: { scale: 2 }, // Ölçekleme
-      jsPDF: { format: 'a4', orientation: 'landscape' } // Belge boyutu ve yönlendirme
+      jsPDF: { format: 'a3', orientation: 'landscape' } // Belge boyutu ve yönlendirme
   };
 
   // HTML içeriğini PDF'e dönüştürme
@@ -358,15 +340,25 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
 
   
   private ExportExcel(data: { id: number; selectedItemName: string }){
- debugger
           var res:any []=[]
+          let headers: string[];
           // Excel dosyası oluşturma işlemi
-          if(data.id ==1)
-              res = this.chart1
-          if(data.id==2)
-              res=this.chart2
-          if(data.id ==3)
-              res=this.chart3
+          if(data.id ==1){
+              res=this.chart1
+              const headers = ["Date - Actual", "Value - Actual"]; 
+              res.unshift(headers);
+          }              
+          if(data.id==2){
+            res=this.chart2
+            const headers = ["Date - Forecast", "Value - Forecast"];
+            res.unshift(headers);
+          }              
+          if(data.id ==3){
+            res=this.chart3
+            const headers = ["Date - Actual", "Value - Actual","Date - Forecast", "Value - Forecast"];
+            res.unshift(headers);
+          }
+          debugger
           const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(res);
           const wb: XLSX.WorkBook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
@@ -375,6 +367,16 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
           XLSX.writeFile(wb, 'exported_data.xlsx');
   }
 
+  /* Bu fonksiyon Excel de tarih düzgün formatlamayı yapmak için kullanıldı */
+   formatTimestamps(data: [number, number][]): [string, number][] {
+    return data.map(([timestamp, value]) => {
+        const date = new Date(timestamp);
+        const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`; // DD/MM/YYYY formatı
+        return [formattedDate, value];
+      });
+    }
+
+    /* Burda chart1 ve chart2 verileri birleştirmek için */
 
   mergeDataSets(data1: any[], data2: any[]): any[][] {
     const mergedData: any[][] = [];
@@ -383,8 +385,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
     for (let i = 0; i < data1.length; i++) {
       mergedData.push(data1[i].concat(data2[i]));
     }
-
     return mergedData;
   }
 
-}
+}  
