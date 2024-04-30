@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChildren, QueryList, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit, DoCheck } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, delay, takeUntil, timeout } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import {
   ApexAxisChartSeries,
@@ -15,6 +15,10 @@ import {
 import * as html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 import { DashboardService } from '../dashboard.service';
+
+import html2canvas from 'html2canvas';
+
+import jsPDF from 'jspdf';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -321,50 +325,107 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
   private ExportPDF(data: { id: number; selectedItemName: string }) {
     // this.isShow = true
      const itemId = data.id;
-    const element = document.getElementById(itemId.toString());
-    for (let index = 0; index < 1000000000; index++) {
+     this.downloadPDF(data)
+  //   const element = document.getElementById(itemId.toString());
+  //   for (let index = 0; index < 1000000000; index++) {
       
-    }
-    const options = {
-      margin: 10, // Kenar boşlukları
-      filename: 'pdfDosyasi.pdf',
-      image: { type: 'jpeg', quality: 0.98 }, // Görüntü kalitesi
-      html2canvas: { scale: 2 }, // Ölçekleme
-      jsPDF: { format: 'a3', orientation: 'landscape' } // Belge boyutu ve yönlendirme
-  };
+  //   }
+  //   const options = {
+  //     margin: 10, // Kenar boşlukları
+  //     filename: 'pdfDosyasi.pdf',
+  //     image: { type: 'jpeg', quality: 0.98 }, // Görüntü kalitesi
+  //     html2canvas: { scale: 2 }, // Ölçekleme
+  //     jsPDF: { format: 'a3', orientation: 'landscape' } // Belge boyutu ve yönlendirme
+  // };
 
-  // HTML içeriğini PDF'e dönüştürme
-  html2pdf()
-      .set(options)
-      .from(element)
-      .toPdf()
-      .get('pdf')
-      .then((pdf) => {
-          // PDF dosyasını indir
-       //   this.isShow = false
-          pdf.save(options.filename);
-      });
+  // // HTML içeriğini PDF'e dönüştürme
+  // html2pdf()
+  //     .set(options)
+  //     .from(element)
+  //     .toPdf()
+  //     .get('pdf')
+  //     .then((pdf) => {
+  //         // PDF dosyasını indir
+  //      //   this.isShow = false
+  //         pdf.save(options.filename);
+  //     });
   }
+
+
+  public downloadPDF(data: { id: number; selectedItemName: string }): void {
+    const itemId = data.id;
+    this.isShow = true
+    setTimeout(() => {
+      const DATA = document.getElementById(itemId.toString());
+      const doc = new jsPDF('l', 'pt', 'a4');
+      const options = {
+        background: 'white',
+        scale: 3,
+      };
+      html2canvas(DATA, options)
+        .then((canvas) => {
+          const img = canvas.toDataURL('image/PNG');
+    
+          // Add image Canvas to PDF
+          const bufferX = 15;
+          const bufferY = 15;
+          const imgProps = doc.getImageProperties(img);
+          const pdfWidth = doc.internal.pageSize.getWidth() - 2 * bufferX;
+          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          doc.addImage(
+            img,
+            'PNG',
+            bufferX,
+            bufferY,
+            pdfWidth,
+            pdfHeight,
+            undefined,
+            'FAST'
+          );
+          return doc;
+        })
+        .then((docResult) => {
+          
+          docResult.save(`${new Date().toISOString()}_report.pdf`);
+        });
+    }, 1000);
+    this.isShow = false
+  }
+
+
+
 
   
   private ExportExcel(data: { id: number; selectedItemName: string }){
           var res:any []=[]
-          let headers: string[];
+          var headers: string[];
+          var headerAdded1;
+          var headerAdded2;
+          var headerAdded3;
           // Excel dosyası oluşturma işlemi
           if(data.id ==1){
               res=this.chart1
-              const headers = ["Date - Actual", "Value - Actual"]; 
-              res.unshift(headers);
+              if (!headerAdded1) {
+                var headers = ["Date - Actual", "Value - Actual"];
+                res.unshift(headers);
+                headerAdded1 = true;
+            }
           }              
           if(data.id==2){
             res=this.chart2
-            const headers = ["Date - Forecast", "Value - Forecast"];
-            res.unshift(headers);
+            if (headerAdded2) {
+              var headers = ["Date - Forecast", "Value - Forecast"];
+              res.unshift(headers);
+              headerAdded2 = false;
+          }
           }              
           if(data.id ==3){
             res=this.chart3
-            const headers = ["Date - Actual", "Value - Actual","Date - Forecast", "Value - Forecast"];
-            res.unshift(headers);
+            if (headerAdded3) {
+              var headers = ["Date - Actual", "Value - Actual", "Date - Forecast", "Value - Forecast"];
+              res.unshift(headers);
+              headerAdded3 = false;
+          }
           }
           debugger
           const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(res);
