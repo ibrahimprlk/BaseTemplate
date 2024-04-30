@@ -29,7 +29,7 @@ export type ChartOptions = {
   selector: 'mecha-apex-chart',
   templateUrl: './apex-chart.component.html',
 })
-export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges, DoCheck {
+export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  DoCheck {
   @Input() chartId: number = 0
   types: { label: string, value: string }[] = []
   chartOptions: any;
@@ -53,13 +53,15 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
       if(seriesData?.length ==1 && seriesData[0].name =="Actual")
         {
          // this.chart1 =seriesData[0].data
-         this.chart1=this.dashboardService.getChartActualData()
+          this.chart1=this.dashboardService.getChartActualData()
+          this.chart1=this.formatTimestamps(this.chart1)     
         }
 
         if(seriesData?.length ==1 && seriesData[0].name =="Forecast")
           {
            // this.chart2 =seriesData[0].data
            this.chart2=this.dashboardService.getChartForecastData()
+           this.chart2=this.formatTimestamps(this.chart2)
           }
 
 
@@ -67,7 +69,11 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
             {
               
              // this.chart3 = this.mergeDataSets(seriesData[0].data,seriesData[1].data)
-             this.chart3 = this.mergeDataSets(this.dashboardService.getChartActualData(),this.dashboardService.getChartForecastData())
+             this.chart1=this.dashboardService.getChartActualData()
+             this.chart1=this.formatTimestamps(this.chart1)
+             this.chart2=this.dashboardService.getChartForecastData()
+             this.chart2=this.formatTimestamps(this.chart2) 
+             this.chart3 = this.mergeDataSets(this.chart1,this.chart2)
             }
     }
   }
@@ -217,19 +223,19 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
     this.isViewInit = true;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  // ngOnChanges(changes: SimpleChanges): void {
    
-    if (this.isViewInit) {
-      this.chartOptions = Object.assign(this.baseChartOptions);
+  //   if (this.isViewInit) {
+  //     this.chartOptions = Object.assign(this.baseChartOptions);
       
-      let series: any[] = [];
-      changes['series'].currentValue.forEach(element => {
-        series.push(element)
-      });
-      this.chartOptions.series = series;
-      this.chart.updateSeries(this.chartOptions.series, true)
-    }
-  }
+  //     let series: any[] = [];
+  //     changes['series'].currentValue.forEach(element => {
+  //       series.push(element)
+  //     });
+  //     this.chartOptions.series = series;
+  //     this.chart.updateSeries(this.chartOptions.series, true)
+  //   }
+  // }
   changeType(event, seriesName, chart) {
     if (chart === 'chart') {
       let series = this.chartOptions.series.map(s => {
@@ -313,10 +319,12 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
 
   isShow:boolean = false
   private ExportPDF(data: { id: number; selectedItemName: string }) {
-     this.isShow = true
+    // this.isShow = true
      const itemId = data.id;
-     
     const element = document.getElementById(itemId.toString());
+    for (let index = 0; index < 1000000000; index++) {
+      
+    }
     const options = {
       margin: 10, // Kenar boşlukları
       filename: 'pdfDosyasi.pdf',
@@ -333,7 +341,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, OnC
       .get('pdf')
       .then((pdf) => {
           // PDF dosyasını indir
-          this.isShow = false
+       //   this.isShow = false
           pdf.save(options.filename);
       });
   }
