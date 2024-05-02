@@ -8,7 +8,8 @@ import { authGuard } from './core/guards/auth.guard';
     imports: [
         RouterModule.forRoot([
             {
-                 path: '',component: AppLayoutComponent,            
+                path: '',canActivate:[authGuard],component: AppLayoutComponent,             
+                //path: '',canActivate:[authGuard],component: AppLayoutComponent,             
                 children: [
                     { path: '', loadChildren: () => import('./pages/components/dashboard/dashboard.module').then(m => m.DashboardModule) },
                    { path: 'uikit', loadChildren: () => import('./pages/components/uikit/uikit.module').then(m => m.UIkitModule) },

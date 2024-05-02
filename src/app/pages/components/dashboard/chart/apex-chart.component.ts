@@ -325,43 +325,31 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
   private ExportPDF(data: { id: number; selectedItemName: string }) {
     // this.isShow = true
      const itemId = data.id;
-     this.downloadPDF(data)
-  //   const element = document.getElementById(itemId.toString());
-  //   for (let index = 0; index < 1000000000; index++) {
-      
-  //   }
-  //   const options = {
-  //     margin: 10, // Kenar boşlukları
-  //     filename: 'pdfDosyasi.pdf',
-  //     image: { type: 'jpeg', quality: 0.98 }, // Görüntü kalitesi
-  //     html2canvas: { scale: 2 }, // Ölçekleme
-  //     jsPDF: { format: 'a3', orientation: 'landscape' } // Belge boyutu ve yönlendirme
-  // };
 
-  // // HTML içeriğini PDF'e dönüştürme
-  // html2pdf()
-  //     .set(options)
-  //     .from(element)
-  //     .toPdf()
-  //     .get('pdf')
-  //     .then((pdf) => {
-  //         // PDF dosyasını indir
-  //      //   this.isShow = false
-  //         pdf.save(options.filename);
-  //     });
-  }
-
-
-  public downloadPDF(data: { id: number; selectedItemName: string }): void {
-    const itemId = data.id;
-    this.isShow = true
-    setTimeout(() => {
+     setTimeout(() => {
       const DATA = document.getElementById(itemId.toString());
-      const doc = new jsPDF('l', 'pt', 'a4');
+      const doc = new jsPDF('portrait', 'mm', 'a4');
       const options = {
         background: 'white',
         scale: 3,
       };
+
+      var title = "Actual Chart Başlik Deneme";
+      var pageWidth = doc.internal.pageSize.getWidth();
+
+         // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
+         doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'normal');
+         // Arial Unicode MS fontunu kullanın
+         doc.setFont('ArialUnicodeMS');
+      
+      // Başlık font boyutunu ayarla
+      doc.setFontSize(20); // Başlık font boyutu      
+      // Metnin boyutunu al
+      var textDimensions = doc.getTextDimensions(title);      
+      // Metni belgenin tam ortasına yerleştir
+      var startX = (pageWidth - textDimensions.w) / 2;
+      doc.text(title, startX, 10); // Y koordinatı 10 olarak belirlendi
+
       html2canvas(DATA, options)
         .then((canvas) => {
           const img = canvas.toDataURL('image/PNG');
@@ -382,6 +370,38 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
             undefined,
             'FAST'
           );
+
+          doc.setFontSize(15); // Başlık font boyutu  
+          debugger
+          let currentUser:any = JSON.parse(localStorage.getItem('currentUser'));
+          console.log(currentUser.userName);
+          
+          var text= "Kullanıcı"+" : "+ currentUser.userName;
+          var textY = bufferY + pdfHeight + 10; // Adjust this value as needed
+          doc.text(text, 15, textY);
+          var text= "Kullanıcı Şirket"+" : "+"Şirket"
+           textY = textY + 10; // Adjust this value as needed
+          doc.text(text, 15, textY);
+
+          var anlikZaman = new Date(); // Şu anki tarih ve saat bilgisini alır
+
+          // Tarih ve saat bilgisini istenen formata göre düzenleme
+          var gun = anlikZaman.getDate();
+          var ay = anlikZaman.getMonth() + 1; // Ay 0 ile başlar, bu yüzden 1 eklemeliyiz
+          var yil = anlikZaman.getFullYear();
+          var saat = anlikZaman.getHours();
+          var dakika = anlikZaman.getMinutes();
+          var saniye = anlikZaman.getSeconds();
+
+          // Tarih ve saat bilgisini istenen formata göre düzenleme
+          var formatliTarih = gun + '/' + ay + '/' + yil + ' ' + saat + ':' + dakika + ':' + saniye;
+
+          var text= "İndirme Zamanı"+" : "+formatliTarih
+          textY = textY + 10; // Adjust this value as needed
+          doc.text(text, 15, textY);
+
+          console.log(formatliTarih); // Formatlanmış tarihi console'a yazdırır
+
           return doc;
         })
         .then((docResult) => {
@@ -390,7 +410,9 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
         });
     }, 1000);
     this.isShow = false
+ 
   }
+
 
 
 
