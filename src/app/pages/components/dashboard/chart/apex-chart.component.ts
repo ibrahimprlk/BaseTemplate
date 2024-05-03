@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit, DoCheck } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit, DoCheck, Renderer2, ElementRef, HostListener } from '@angular/core';
 import { Subject, delay, takeUntil, timeout } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import {
@@ -19,6 +19,7 @@ import { DashboardService } from '../dashboard.service';
 import html2canvas from 'html2canvas';
 
 import jsPDF from 'jspdf';
+import { Title } from '@angular/platform-browser';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -50,6 +51,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
   chart3:any[]=[]
   public control: boolean;
   @Input() public set series(seriesData:any) {
+    this.downloadTitleName=seriesData[0].name;
     if (seriesData) {
       this.chartOptions = Object.assign(this.baseChartOptions);
       this.chartOptions.series = seriesData
@@ -102,12 +104,12 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
     this.unSubscription.next(true);
     this.unSubscription.complete()
   }
+
+ 
   ngOnInit(): void {
     
     
-
-
-
+   
     this.layoutService.getApexChartConfig().pipe(takeUntil(this.unSubscription)).subscribe(res => {
       
       this.baseChartOptions.chart.background = res.apexChartBackgroundColor;
@@ -130,7 +132,10 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
     })
   }
 
-  constructor(public layoutService: LayoutService,public dashboardService:DashboardService) {
+
+  public downloadTitleName;
+
+  constructor(public layoutService: LayoutService,public dashboardService:DashboardService,private renderer: Renderer2, private el: ElementRef) {
 
      this.chart1=this.dashboardService.getChartActualData()
      this.chart1=this.formatTimestamps(this.chart1)
@@ -168,6 +173,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
       }],
 
       chart: {
+        id:this.downloadName,
         events:{
           updated: () => {
             this.AddChartCustomExportItem();
@@ -207,8 +213,18 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
           format: 'dd MMM yyyy'
         }
       },
+      
+      title:{
+        text:this.downloadTitleName
+      },
       theme: {
         mode: 'dark'
+      },
+      svg: {
+        filename: "deneme.svg",
+      },
+      png: {
+        filename: "deneme.png",
       }
     };
 
@@ -226,6 +242,8 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
   ngAfterViewInit(): void {
     this.isViewInit = true;
   }
+
+  
 
   // ngOnChanges(changes: SimpleChanges): void {
    
@@ -261,6 +279,14 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
     if (elems) {
       elems.forEach((elem) => {
         var zElement = elem.querySelector('.myObje');
+        
+        var existingDownloadPNG = elem.querySelector('.exportPNG');
+      if (existingDownloadPNG) {
+        // Eğer varsa önceki 'Download PNG' öğesini sil
+        existingDownloadPNG.remove();
+      }
+
+      
         if (!zElement) 
           {
             const newDiv = this.createElem('Download PDF');
@@ -285,10 +311,28 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
               });
             });
 
+            const new3Div = this.createElem('Download PNG');
+            elem.appendChild(new3Div);
+
+            new2Div.addEventListener('click', () => {
+              const currentElem = this.GetElem(elem);
+              this.downloadPNG({
+                id: Number(currentElem.id),
+                selectedItemName: new3Div.textContent,
+              });
+            });
+
         }
+        
       });
     }
   }
+
+  downloadPNG(data: { id: number; selectedItemName: string }) {
+    console.log('Download PNG clicked!');
+    // İşlemlerinizi burada gerçekleştirin
+  }
+
 
   private createElem(itemName: string) {
     var newDiv = document.createElement('div');
@@ -321,10 +365,55 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
   }
 
 
+    public anlikZaman = new Date(); // Şu anki tarih ve saat bilgisini alır
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    public gun = this.anlikZaman.getDate();
+    public ay = this.anlikZaman.getMonth() + 1; // Ay 0 ile başlar, bu yüzden 1 eklemeliyiz
+    public yil = this.anlikZaman.getFullYear();
+    public saat = this.anlikZaman.getHours();
+    public dakika = this.anlikZaman.getMinutes();
+    public saniye = this.anlikZaman.getSeconds();
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    public formatliTarih = this.gun + '/' + this.ay + '/' + this.yil + ' ' + this.saat + ':' + this.dakika + ':' + this.saniye;
+    public downloadName=this.gun + '_' + this.ay + '_' + this.yil 
+    public currentUser:any = JSON.parse(localStorage.getItem('currentUser'));
+
+
   isShow:boolean = false
   private ExportPDF(data: { id: number; selectedItemName: string }) {
+
+
+    let anlikZaman = new Date(); // Şu anki tarih ve saat bilgisini alır
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    let gun = anlikZaman.getDate();
+    let ay = anlikZaman.getMonth() + 1; // Ay 0 ile başlar, bu yüzden 1 eklemeliyiz
+    let yil = anlikZaman.getFullYear();
+    let saat = anlikZaman.getHours();
+    let dakika = anlikZaman.getMinutes();
+    let saniye = anlikZaman.getSeconds();
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    let formatliTarih = gun + '/' + ay + '/' + yil + ' ' + saat + ':' + dakika + ':' + saniye;
+    let currentUser:any = JSON.parse(localStorage.getItem('currentUser'));
+
+
     // this.isShow = true
      const itemId = data.id;
+
+     let textName="";
+     let textBaslik="";
+
+     if(data.id ==1){
+        textName="Actual";
+        textBaslik="Actual";
+      }
+      if(data.id ==2){
+       textName="Forecast";
+       textBaslik="Forecast";
+      }
+      if(data.id ==3){
+       textName="Actual_&_Forecast";
+       textBaslik="Actual & Forecast";
+      }
 
      setTimeout(() => {
       const DATA = document.getElementById(itemId.toString());
@@ -334,7 +423,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
         scale: 3,
       };
 
-      var title = "Actual Chart Başlik Deneme";
+      var title = textBaslik + " Raporu";
       var pageWidth = doc.internal.pageSize.getWidth();
 
          // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
@@ -372,9 +461,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
           );
 
           doc.setFontSize(15); // Başlık font boyutu  
-          debugger
-          let currentUser:any = JSON.parse(localStorage.getItem('currentUser'));
-          console.log(currentUser.userName);
+          
           
           var text= "Kullanıcı"+" : "+ currentUser.userName;
           var textY = bufferY + pdfHeight + 10; // Adjust this value as needed
@@ -383,30 +470,18 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
            textY = textY + 10; // Adjust this value as needed
           doc.text(text, 15, textY);
 
-          var anlikZaman = new Date(); // Şu anki tarih ve saat bilgisini alır
-
-          // Tarih ve saat bilgisini istenen formata göre düzenleme
-          var gun = anlikZaman.getDate();
-          var ay = anlikZaman.getMonth() + 1; // Ay 0 ile başlar, bu yüzden 1 eklemeliyiz
-          var yil = anlikZaman.getFullYear();
-          var saat = anlikZaman.getHours();
-          var dakika = anlikZaman.getMinutes();
-          var saniye = anlikZaman.getSeconds();
-
-          // Tarih ve saat bilgisini istenen formata göre düzenleme
-          var formatliTarih = gun + '/' + ay + '/' + yil + ' ' + saat + ':' + dakika + ':' + saniye;
+          
 
           var text= "İndirme Zamanı"+" : "+formatliTarih
           textY = textY + 10; // Adjust this value as needed
           doc.text(text, 15, textY);
 
-          console.log(formatliTarih); // Formatlanmış tarihi console'a yazdırır
-
           return doc;
         })
         .then((docResult) => {
           
-          docResult.save(`${new Date().toISOString()}_report.pdf`);
+         // docResult.save(`${new Date().toISOString()}_report.pdf`);
+          docResult.save(textName+"_Report_"+gun+"_"+ay+"_"+yil+".pdf");
         });
     }, 1000);
     this.isShow = false
@@ -419,13 +494,28 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
 
   
   private ExportExcel(data: { id: number; selectedItemName: string }){
+
+    let anlikZaman = new Date(); // Şu anki tarih ve saat bilgisini alır
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    let gun = anlikZaman.getDate();
+    let ay = anlikZaman.getMonth() + 1; // Ay 0 ile başlar, bu yüzden 1 eklemeliyiz
+    let yil = anlikZaman.getFullYear();
+    let saat = anlikZaman.getHours();
+    let dakika = anlikZaman.getMinutes();
+    let saniye = anlikZaman.getSeconds();
+    // Tarih ve saat bilgisini istenen formata göre düzenleme
+    let formatliTarih = gun + '/' + ay + '/' + yil + ' ' + saat + ':' + dakika + ':' + saniye;
+    let currentUser:any = JSON.parse(localStorage.getItem('currentUser'));
+
           var res:any []=[]
           var headers: string[];
           var headerAdded1;
           var headerAdded2;
           var headerAdded3;
+          var textName="";
           // Excel dosyası oluşturma işlemi
           if(data.id ==1){
+            textName="Actual";
               res=this.chart1
               if (!headerAdded1) {
                 var headers = ["Date - Actual", "Value - Actual"];
@@ -434,6 +524,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
             }
           }              
           if(data.id==2){
+            textName="Forecast";
             res=this.chart2
             if (headerAdded2) {
               var headers = ["Date - Forecast", "Value - Forecast"];
@@ -442,6 +533,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
           }
           }              
           if(data.id ==3){
+            textName="Actual_&_Forecast";
             res=this.chart3
             if (headerAdded3) {
               var headers = ["Date - Actual", "Value - Actual", "Date - Forecast", "Value - Forecast"];
@@ -449,13 +541,12 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit,  Do
               headerAdded3 = false;
           }
           }
-          debugger
           const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(res);
           const wb: XLSX.WorkBook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
       
           // Dosyayı indirme işlemi
-          XLSX.writeFile(wb, 'exported_data.xlsx');
+          XLSX.writeFile(wb, textName+"_Report_"+gun+"_"+ay+"_"+yil+'.xlsx');
   }
 
   /* Bu fonksiyon Excel de tarih düzgün formatlamayı yapmak için kullanıldı */
