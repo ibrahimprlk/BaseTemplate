@@ -12,14 +12,14 @@ import {
   ChartComponent
 } from 'ng-apexcharts';
 
-import * as html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 import { DashboardService } from '../dashboard.service';
 
 import html2canvas from 'html2canvas';
 
 import jsPDF from 'jspdf';
-import { Title } from '@angular/platform-browser';
+import { fontWeight } from 'html2canvas/dist/types/css/property-descriptors/font-weight';
+
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -276,14 +276,6 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
     if (elems) {
       elems.forEach((elem) => {
         var zElement = elem.querySelector('.myObje');
-
-        var existingDownloadPNG = elem.querySelector('.exportPNG');
-        if (existingDownloadPNG) {
-          // Eğer varsa önceki 'Download PNG' öğesini sil
-          existingDownloadPNG.remove();
-        }
-
-
         if (!zElement) {
           const newDiv = this.createElem('Download PDF');
           elem.appendChild(newDiv);
@@ -307,26 +299,10 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
             });
           });
 
-          const new3Div = this.createElem('Download PNG');
-          elem.appendChild(new3Div);
-
-          new2Div.addEventListener('click', () => {
-            const currentElem = this.GetElem(elem);
-            this.downloadPNG({
-              id: Number(currentElem.id),
-              selectedItemName: new3Div.textContent,
-            });
-          });
-
         }
 
       });
     }
-  }
-
-  downloadPNG(data: { id: number; selectedItemName: string }) {
-    console.log('Download PNG clicked!');
-    // İşlemlerinizi burada gerçekleştirin
   }
 
 
@@ -422,13 +398,14 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
       doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'normal');
       // Arial Unicode MS fontunu kullanın
       doc.setFont('ArialUnicodeMS');
+
+    
       // Başlık font boyutunu ayarla
       doc.setFontSize(20); // Başlık font boyutu  
       // Metnin boyutunu al
       var textDimensions = doc.getTextDimensions(title);
       // Metni belgenin tam ortasına yerleştir
       var startX = (pageWidth - textDimensions.w) / 2;
-      var startY = 10; // Y koordinatı 10 olarak belirlendi
       // Metni belgenin tam ortasına yerleştir
       var startY = 10; // Y koordinatı 10 olarak belirlendi
       // Başlık metnini ekleyin
@@ -438,43 +415,47 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
       doc.line(startX, startY + 2, startX + textDimensions.w, startY + 2); // Altı çizgiyi çiz
 
       //Çalıştırma tarihi için font ayarlandı 
-      doc.setFontSize(8);
+      doc.setFontSize(6);
       var text = "Çalıştırılma Tarihi" + " : " + formatliTarih + " - " + currentUser.userName;
       startY = startY + 7;
       doc.text(text, startX, startY);
 
       //Başlangıç tarihi tarihi için font ayarlandı 
-      doc.setFontSize(12);
+      doc.setFontSize(10);
       var text1 = "Başlangıç Tarihi" + " : ";
       startY = startY + 10;
       doc.text(text1, 10, startY);
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       var text2 = formatliTarih;
       doc.text(text2, 45, startY);
 
       //Ödeme tipi için font ayarlandı 
-      doc.setFontSize(12);
+      doc.setFontSize(10);
       var text1 = "Ödeme Tipi" + " : ";
       doc.text(text1, 90, startY);
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       var text2 = formatliTarih;
       doc.text(text2, 115, startY);
 
 
-      //Bitiş tarihi tarihi için font ayarlandı 
-      doc.setFontSize(12);
+        // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
+      doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'italic');
+      // Arial Unicode MS fontunu kullanın
+      doc.setFont('ArialUnicodeMS',"italic");
+      // Yazı tipini ve stilini belirleyin (Arial Unicode MS, kalın)
+      doc.setFontSize(10);
       var text1 = "Bitiş Tarihi" + " : ";
-      startY = startY + 10;
+      startY = startY + 5;
       doc.text(text1, 10, startY);
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       var text2 = formatliTarih;
       doc.text(text2, 45, startY);
 
       //Kurumlar için font ayarlandı 
-      doc.setFontSize(12);
+      doc.setFontSize(10);
       var text1 = "Kurumlar" + " : ";
       doc.text(text1, 90, startY);
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       var text2 = formatliTarih;
       doc.text(text2, 115, startY);
 
@@ -501,17 +482,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
             'FAST'
           );
 
-          //     var doc    = new jsPDF();
-          var header = ['1', '2',];
-          var data = [{ 1: '1', 2: '2' }];
-          var config = {
-            autoSize: false,
-            printHeaders: true,
-            colWidths: [50, 50]
-          }
-
-          doc.table(10, bufferY + pdfHeight + 10, data, header, config);
-      //    doc.output('dataurlnewwindow');
+          doc.addPage();
 
           return doc;
         })
@@ -524,7 +495,6 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
     this.isShow = false
 
   }
-
 
 
 
@@ -554,6 +524,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
     if (data.id == 1) {
       textName = "Actual";
       res = this.chart1
+      debugger
       if (!headerAdded1) {
         var headers = ["Date - Actual", "Value - Actual"];
         res.unshift(headers);
