@@ -391,7 +391,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
         scale: 3,
       };
 
-      var title = textBaslik + " Raporu";
+      var title = " Raporu";
       var pageWidth = doc.internal.pageSize.getWidth();
 
       // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
@@ -439,9 +439,9 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
 
 
         // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
-      doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'italic');
+     // doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'italic');
       // Arial Unicode MS fontunu kullanın
-      doc.setFont('ArialUnicodeMS',"italic");
+  //    doc.setFont('ArialUnicodeMS',"italic");
       // Yazı tipini ve stilini belirleyin (Arial Unicode MS, kalın)
       doc.setFontSize(10);
       var text1 = "Bitiş Tarihi" + " : ";

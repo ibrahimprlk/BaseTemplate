@@ -34,11 +34,11 @@ export class DashboardService{
   // const randomData = generateRandomDataForYears(startYear, endYear);
 
     public getChartActualData(){
-        return this.generateRandomDataForYears(2022,2024);
+        return this.generateRandomDataForYears(2022,2022);
     }
 
     public getChartForecastData(){
-        return this.generateRandomDataForYears(2022,2024);
+        return this.generateRandomDataForYears(2022,2022);
     }
 
 }
