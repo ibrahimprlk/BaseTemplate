@@ -395,11 +395,12 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
       var pageWidth = doc.internal.pageSize.getWidth();
 
       // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
-      doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'normal');
+      doc.addFont('assets/fonts/arialuni.ttf', 'ince', 'normal');
+      doc.addFont('assets/fonts/Freeman.ttf', 'kalin', 'normal');
       // Arial Unicode MS fontunu kullanın
-      doc.setFont('ArialUnicodeMS');
+      doc.setFont('kalin');
 
-    
+
       // Başlık font boyutunu ayarla
       doc.setFontSize(20); // Başlık font boyutu  
       // Metnin boyutunu al
@@ -418,7 +419,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
       doc.setFontSize(6);
       var text = "Çalıştırılma Tarihi" + " : " + formatliTarih + " - " + currentUser.userName;
       startY = startY + 7;
-      doc.text(text, startX, startY);
+      doc.text(text, startX - 10, startY);
 
       //Başlangıç tarihi tarihi için font ayarlandı 
       doc.setFontSize(10);
@@ -438,12 +439,7 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
       doc.text(text2, 115, startY);
 
 
-        // Arial Unicode MS fontunu ekleyin (projeye göre dosya yolu ayarlayın)
-     // doc.addFont('assets/fonts/arialuni.ttf', 'ArialUnicodeMS', 'italic');
-      // Arial Unicode MS fontunu kullanın
-  //    doc.setFont('ArialUnicodeMS',"italic");
-      // Yazı tipini ve stilini belirleyin (Arial Unicode MS, kalın)
-      doc.setFontSize(10);
+
       var text1 = "Bitiş Tarihi" + " : ";
       startY = startY + 5;
       doc.text(text1, 10, startY);
@@ -482,7 +478,17 @@ export class ApexChartComponent implements OnInit, OnDestroy, AfterViewInit, DoC
             'FAST'
           );
 
-          doc.addPage();
+          doc.addPage()
+
+          const pageCount = (doc as any).internal.getNumberOfPages(); //was doc.internal.getNumberOfPages(); 
+          // For each page, print the page number and the total pages
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setFontSize(10);
+            // Go to page i
+            doc.setPage(i);
+            doc.setFont('ince')
+            doc.text('Sayfa ' + String(i) + ' / ' + String(pageCount), 190, 5); //data.settings.margin.left if you want it on the left
+          }        
 
           return doc;
         })
